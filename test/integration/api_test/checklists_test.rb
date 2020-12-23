@@ -3,7 +3,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -89,7 +89,7 @@ class Redmine::ApiTest::ChecklistsTest < Redmine::ApiTest::Base
   end
 
   def test_put_checklists_1_xml
-    parameters = { :checklist => { :subject => 'Item_UPDATED' } }
+    parameters = { :checklist => { subject: 'Item_UPDATED', is_done: '1' } }
 
     assert_no_difference('Checklist.count') do
       compatible_api_request :put, '/checklists/1.xml', parameters, credentials('admin')
@@ -104,7 +104,7 @@ class Redmine::ApiTest::ChecklistsTest < Redmine::ApiTest::Base
       compatible_api_request :delete, '/checklists/1.xml', {}, credentials('admin')
     end
 
-    assert_response :ok
+    assert ['200', '204'].include?(response.code)
     assert_equal '', @response.body
     assert_nil Checklist.find_by_id(1)
   end

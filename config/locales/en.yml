@@ -1,5 +1,9 @@
 # English strings go here for Rails i18n
 en:
+  activerecord:
+    attributes:
+      checklists:
+        subject: Checklist subject
   label_checklist_plural: Checklist
   field_checklist: Checklist
   label_checklist_save_log: Save changes to issue log
@@ -15,10 +19,12 @@ en:
   field_template_items: Template items
   label_checklist_template: Checklist template
   label_add_checklists_from_template: Add from template
+  label_checklists_from_template: From template
   label_select_template: "-- Select template --"
   label_checklist_category_not_specified: "-- Not specified --"
   label_checklists_description: 'Multiple values allowed (one line for each value)'
   label_checklist_item: Checklist item
+  label_checklist_section: Checklist section
   label_checklist_deleted: deleted
   label_checklist_changed_from: changed from
   label_checklist_changed_to: to
@@ -29,8 +35,10 @@ en:
   label_checklist_status: Checklist status
   label_checklist_status_done: Done
   label_checklist_status_undone: Undone
-  label_checklist_status: Checklist status
   label_checklist_is_default: Default
   field_is_for_tracker: Tracker
   label_checklists_must_be_completed: All checklists of an issue must be done before closing
   label_checklist_block_issue_closing: Block issue closing
+  label_checklist_show_closed: Show closed
+  label_checklist_hide_closed: Hide closed
+  label_checklist_new_section: New section

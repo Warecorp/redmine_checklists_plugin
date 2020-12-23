@@ -1,7 +1,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -17,13 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with redmine_checklists.  If not, see <http://www.gnu.org/licenses/>.
 
-
 require_dependency 'journal'
 
 module RedmineChecklists
   module Patches
     module JournalPatch
-
       def self.included(base) # :nodoc:
         base.send(:include, InstanceMethods)
         base.class_eval do
@@ -40,7 +38,7 @@ module RedmineChecklists
                   (Setting.notified_events.include?('issue_status_updated') && new_status.present?) ||
                   (Setting.notified_events.include?('issue_priority_updated') && new_value_for('priority_id').present?)
                 )
-              checklist_email_nootification(self).deliver
+              deliver_checklist_notification
             end
           end
 
@@ -49,7 +47,17 @@ module RedmineChecklists
           end
         end
 
-        def checklist_email_nootification(journal)
+        def deliver_checklist_notification
+          if Redmine::VERSION.to_s >= '4.0'
+            (notified_watchers | notified_users).each do |user|
+              Mailer.issue_edit(user, self).deliver
+            end
+          else
+            checklist_email_notification(self).deliver
+          end
+        end
+
+        def checklist_email_notification(journal)
           if Redmine::VERSION.to_s < '2.4'
             Mailer.issue_edit(journal)
           else
@@ -57,7 +65,6 @@ module RedmineChecklists
           end
         end
       end
-
     end
   end
 end

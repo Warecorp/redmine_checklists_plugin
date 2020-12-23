@@ -3,7 +3,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -71,6 +71,11 @@ class RedmineChecklists::TestCase
   end
 
   def self.prepare
+    Role.find([1,2]).each do |r| # For anonymous
+      r.permissions << :view_checklists
+      r.save
+    end
+
     Role.find(1, 2, 3, 4).each do |r|
       r.permissions << :edit_checklists
       r.save

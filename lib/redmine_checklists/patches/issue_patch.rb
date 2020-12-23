@@ -1,7 +1,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -46,23 +46,21 @@ module RedmineChecklists
 
           safe_attributes 'checklists_attributes',
             :if => lambda { |issue, user| (user.allowed_to?(:done_checklists, issue.project) || user.allowed_to?(:edit_checklists, issue.project)) }
-
-          def copy_checklists(arg)
-            issue = arg.is_a?(Issue) ? arg : Issue.visible.find(arg)
-            issue.checklists.each{ |checklist| Checklist.create(checklist.attributes.except('id', 'issue_id').merge(:issue => self)) } if issue
-          end
-
-          def block_issue_closing_if_checklists_unclosed
-            if RedmineChecklistSetting.block_issue_closing? && checklists.any? && status.is_closed?
-              errors.add(:checklists, l(:label_checklists_must_be_completed)) unless (checklists - checklists.where(:id => removed_checklist_ids)).all?(&:is_done)
-            end
-          end
         end
       end
 
       module InstanceMethods
+        def copy_checklists(arg)
+          issue = arg.is_a?(Issue) ? arg : Issue.visible.find(arg)
+          if issue
+            issue.checklists.each do |checklist|
+              Checklist.create(checklist.attributes.except('id', 'issue_id').merge(issue: self))
+            end
+          end
+        end
+
         def copy_subtask_checklists
-          return if !copy? || parent_id.nil? || checklists.any?
+          return if !copy? || parent_id.nil? || checklists.reload.any?
           copy_checklists(@copied_from)
         end
 
@@ -70,6 +68,23 @@ module RedmineChecklists
           copy = copy_without_checklist(attributes, copy_options)
           copy.copy_checklists(self)
           copy
+        end
+
+        def all_checklist_items_is_done?
+          (checklists - checklists.where(id: removed_checklist_ids)).reject(&:is_section).all?(&:is_done)
+        end
+
+        def need_to_block_issue_closing?
+          RedmineChecklists.block_issue_closing? &&
+            checklists.reject(&:is_section).any? &&
+            status.is_closed? &&
+            !all_checklist_items_is_done?
+        end
+
+        def block_issue_closing_if_checklists_unclosed
+          if need_to_block_issue_closing?
+            errors.add(:checklists, l(:label_checklists_must_be_completed))
+          end
         end
       end
     end
