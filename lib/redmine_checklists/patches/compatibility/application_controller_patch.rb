@@ -29,7 +29,7 @@ module RedmineChecklists
 
       module ClassMethods
         def before_action(*filters, &block)
-          before_filter(*filters, &block)
+          before_action(*filters, &block)
         end
       end
     end
