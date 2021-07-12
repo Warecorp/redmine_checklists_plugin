@@ -3,7 +3,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -53,6 +53,7 @@ class IssuesControllerTest < ActionController::TestCase
 
   def setup
     @request.session[:user_id] = 1
+    RedmineChecklists::TestCase.prepare
   end
 
   def test_new_issue_without_project
@@ -159,6 +160,24 @@ class IssuesControllerTest < ActionController::TestCase
     assert_not_nil issue
   end
 
+  def test_create_issue_with_checklists
+    @request.session[:user_id] = 1
+    assert_difference 'Issue.count' do
+      compatible_request :post, :create, :project_id => 1, :issue => { :tracker_id => 3,
+                                                                       :status_id => 2,
+                                                                       :subject => 'NEW issue with checklists',
+                                                                       :description => 'This is the description',
+                                                                       :checklists_attributes => { '0' => { 'is_done' => '0', 'subject' => 'item 001', 'position' => '1' } }
+                                                                     }
+    end
+    assert_redirected_to :controller => 'issues', :action => 'show', :id => Issue.last.id
+
+    issue = Issue.find_by_subject('NEW issue with checklists')
+    assert_equal 1, issue.checklists.count
+    assert_equal 'item 001', issue.checklists.last.subject
+    assert_not_nil issue
+  end
+
   def test_create_issue_using_json
     old_value = Setting.rest_api_enabled
     Setting.rest_api_enabled = '1'
@@ -179,5 +198,29 @@ class IssuesControllerTest < ActionController::TestCase
     assert_equal 1, issue.checklists.count
   ensure
     Setting.rest_api_enabled = old_value
+  end
+
+  def test_history_displaying_for_checklist
+    @request.session[:user_id] = 1
+    Setting[:plugin_redmine_checklists] = { save_log: 1, issue_done_ratio: 0 }
+
+    issue = Issue.find(1)
+    journal = issue.journals.create!(user_id: 1)
+    journal.details.create!(:property =>  'attr',
+                            :prop_key =>  'checklist',
+                            :old_value => '[ ] TEST',
+                            :value =>     '[x] TEST')
+
+    # With permissions
+    @request.session[:user_id] = 1
+    compatible_request :get, :show, id: issue.id
+    assert_response :success
+    assert_include 'changed from [ ] TEST to [x] TEST', response.body
+
+    # Without permissions
+    @request.session[:user_id] = 5
+    compatible_request :get, :show, id: issue.id
+    assert_response :success
+    assert_not_include 'changed from [ ] TEST to [x] TEST', response.body
   end
 end

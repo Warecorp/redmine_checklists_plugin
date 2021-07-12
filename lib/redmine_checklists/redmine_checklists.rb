@@ -1,7 +1,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -19,7 +19,6 @@
 
 Rails.configuration.to_prepare do
   require 'redmine_checklists/patches/compatibility/application_helper_patch'
-  require 'redmine_checklists/patches/compatibility/application_controller_patch' if Rails::VERSION::MAJOR < 4
 
   require 'redmine_checklists/hooks/views_issues_hook'
   require 'redmine_checklists/hooks/views_layouts_hook'
@@ -36,5 +35,13 @@ Rails.configuration.to_prepare do
 end
 
 module RedmineChecklists
-  def self.settings() Setting[:plugin_redmine_checklists].blank? ? {} : Setting[:plugin_redmine_checklists] end
+  def self.settings() Setting.plugin_redmine_checklists.blank? ? {} : Setting.plugin_redmine_checklists end
+
+  def self.block_issue_closing?
+    settings['block_issue_closing'].to_i > 0
+  end
+
+  def self.issue_done_ratio?
+    settings['issue_done_ratio'].to_i > 0
+  end
 end

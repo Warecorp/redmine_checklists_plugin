@@ -1,7 +1,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -69,9 +69,12 @@ module RedmineChecklists
         def add_checklists_to_params(checklists)
           params[:issue].blank? ? params[:issue] = { :checklists_attributes => {} } : params[:issue][:checklists_attributes] = {}
           checklists.each_with_index do |checklist_item, index|
-            params[:issue][:checklists_attributes][index.to_s] = { :is_done => checklist_item.is_done,
-                                                                   :subject => checklist_item.subject,
-                                                                   :position => checklist_item.position }
+            params[:issue][:checklists_attributes][index.to_s] = {
+              is_done: checklist_item.is_done,
+              subject: checklist_item.subject,
+              position: checklist_item.position,
+              is_section: checklist_item.is_section
+            }
           end
         end
       end

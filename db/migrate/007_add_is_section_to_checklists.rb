@@ -1,7 +1,7 @@
 # This file is a part of Redmine Checklists (redmine_checklists) plugin,
 # issue checklists management plugin for Redmine
 #
-# Copyright (C) 2011-2018 RedmineUP
+# Copyright (C) 2011-2020 RedmineUP
 # http://www.redmineup.com/
 #
 # redmine_checklists is free software: you can redistribute it and/or modify
@@ -17,25 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redmine_checklists.  If not, see <http://www.gnu.org/licenses/>.
 
-module RedmineChecklists
-  module Patches
-    module ApplicationControllerPatch
-      def self.included(base) # :nodoc:
-        base.extend(ClassMethods)
-        base.class_eval do
-          unloadable # Send unloadable so it will not be unloaded in development
-        end
-      end
-
-      module ClassMethods
-        def before_action(*filters, &block)
-          before_filter(*filters, &block)
-        end
-      end
-    end
+class AddIsSectionToChecklists < (Rails.version < '5.1') ? ActiveRecord::Migration : ActiveRecord::Migration[4.2]
+  def change
+    add_column :checklists, :is_section, :boolean, default: false
   end
-end
-
-unless ApplicationController.included_modules.include?(RedmineChecklists::Patches::ApplicationControllerPatch)
-  ApplicationController.send(:include, RedmineChecklists::Patches::ApplicationControllerPatch)
 end
